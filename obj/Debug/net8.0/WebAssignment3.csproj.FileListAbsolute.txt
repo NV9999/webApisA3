@@ -259,6 +259,7 @@ C:\Users\Vinad virani\OneDrive\Desktop\SoftwareQuality\Assignment02\WebAssignmen
 C:\Users\Vinad virani\OneDrive\Desktop\SoftwareQuality\Assignment02\WebAssignment3\WebAssignment3\obj\Debug\net8.0\WebAssignment3.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\Vinad virani\OneDrive\Desktop\SoftwareQuality\Assignment02\WebAssignment3\WebAssignment3\obj\Debug\net8.0\WebAssignment3.RazorAssemblyInfo.cache
 C:\Users\Vinad virani\OneDrive\Desktop\SoftwareQuality\Assignment02\WebAssignment3\WebAssignment3\obj\Debug\net8.0\WebAssignment3.RazorAssemblyInfo.cs
+C:\Users\Vinad virani\OneDrive\Desktop\SoftwareQuality\Assignment02\WebAssignment3\WebAssignment3\obj\Debug\net8.0\WebAssignment3.sourcelink.json
 C:\Users\Vinad virani\OneDrive\Desktop\SoftwareQuality\Assignment02\WebAssignment3\WebAssignment3\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\Vinad virani\OneDrive\Desktop\SoftwareQuality\Assignment02\WebAssignment3\WebAssignment3\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\Vinad virani\OneDrive\Desktop\SoftwareQuality\Assignment02\WebAssignment3\WebAssignment3\obj\Debug\net8.0\staticwebassets\msbuild.WebAssignment3.Microsoft.AspNetCore.StaticWebAssets.props

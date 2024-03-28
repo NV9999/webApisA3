@@ -143,24 +143,58 @@ namespace WebAssignment3.Controllers
             return View(user);
         }
 
-        // POST: Users/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        //POST: Users/Delete/5
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user != null)
+            if (user == null)
             {
-                _context.Users.Remove(user);
+                return NotFound();
             }
 
+            _context.Users.Remove(user);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return Ok(new { message = "User deleted successfully." });
         }
 
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.Id == id);
+        }
+
+        // PUT: Users/Edit/5
+        [HttpPut]
+        public async Task<IActionResult> Updateuser(int id, [Bind("Id,Email,Password,Username,PurchaseHistory,ShippingAddress,Carts,Comments")] User user)
+        {
+            if (id != user.Id)
+            {
+                return BadRequest("User ID does not match.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!UserExists(user.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return Json(user);
+            }
+            return BadRequest(ModelState);
         }
     }
 }

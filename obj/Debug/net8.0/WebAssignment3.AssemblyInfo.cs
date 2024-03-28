@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WebAssignment3")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a230ea474f395c83f5d82d7fbde8e38c835ccd3b")]
 [assembly: System.Reflection.AssemblyProductAttribute("WebAssignment3")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WebAssignment3")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
