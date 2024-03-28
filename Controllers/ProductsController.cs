@@ -21,7 +21,8 @@ namespace WebAssignment3.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Products.ToListAsync());
+            var products = await _context.Products.ToListAsync();
+            return Json(products);
         }
 
         // GET: Products/Details/5
@@ -32,14 +33,13 @@ namespace WebAssignment3.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var product = await _context.Products.FirstOrDefaultAsync(m => m.Id == id);
             if (product == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return Json(product);
         }
 
         // GET: Products/Create
