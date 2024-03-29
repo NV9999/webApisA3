@@ -52,21 +52,31 @@ namespace WebAssignment3.Controllers
         }
 
         // POST: Orders/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,CartId,OrderDate,Total")] Order order)
+        public async Task<IActionResult> Create([FromBody] Order order)
         {
-            if (ModelState.IsValid)
+            if (order == null)
             {
-                _context.Add(order);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return BadRequest("Order object is null");
             }
-            ViewData["CartId"] = new SelectList(_context.Carts, "Id", "Id", order.CartId);
-            return View(order);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+                return Ok(new { success = true, message = "Order created successfully", order });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
 
         // GET: Orders/Edit/5
         public async Task<IActionResult> Edit(int? id)

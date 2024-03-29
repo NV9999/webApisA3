@@ -9,6 +9,6 @@ namespace WebAssignment3.Models
         [ForeignKey("Cart")]
         public int CartId { get; set; }
         public DateTime OrderDate { get; set; }
-        public decimal Total { get; set; }
+        public int Total { get; set; }
     }
 }

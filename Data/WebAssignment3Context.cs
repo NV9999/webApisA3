@@ -44,7 +44,7 @@ public partial class WebAssignment3Context : DbContext
                 .HasColumnName("quantities");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.ProductIdsNavigation).WithMany(p => p.Carts)
+            entity.HasOne(d => d.Product).WithMany(p => p.Carts)
                 .HasForeignKey(d => d.ProductIds)
                 .HasConstraintName("FK_cart_product");
 

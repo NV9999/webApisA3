@@ -4,8 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
 using WebAssignment3.Data;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace WebAssignment3.Controllers
 {
@@ -21,9 +24,32 @@ namespace WebAssignment3.Controllers
         // GET: Comments
         public async Task<IActionResult> Index()
         {
-            var webAssignment3Context = _context.Comments.Include(c => c.Product).Include(c => c.User);
-            return View(await webAssignment3Context.ToListAsync());
+            try
+            {
+                var comment = await _context.Comments
+                    .Include(o => o.Product)
+                    .Include(o => o.User)
+                    .ToListAsync();
+
+                if (comment == null || comment.Count == 0)
+                {
+                    return NotFound(new { success = false, message = "No carts found" });
+                }
+
+                var options = new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                };
+
+                var json = JsonConvert.SerializeObject(new { success = true, data = comment }, options);
+                return new OkObjectResult(json);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Failed to retrieve carts: {ex.Message}" });
+            }
         }
+
 
         // GET: Comments/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -36,14 +62,37 @@ namespace WebAssignment3.Controllers
             var comment = await _context.Comments
                 .Include(c => c.Product)
                 .Include(c => c.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
+               // .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == id);
+
             if (comment == null)
             {
                 return NotFound();
             }
 
-            return View(comment);
+            // Create a custom anonymous object with required properties
+            var result = new
+            {
+                Id = comment.Id,
+                ProductId = comment.ProductId,
+                UserId = comment.UserId,
+                Rating = comment.Rating,
+                Image = comment.Image,
+                Text = comment.Text
+            };
+
+            // Serialize comment directly without the need for an array wrapper
+            var json = System.Text.Json.JsonSerializer.Serialize(result, new System.Text.Json.JsonSerializerOptions
+            {
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+                IgnoreNullValues = true,
+                WriteIndented = true,
+                MaxDepth = 64 // Adjust the depth as needed
+            });
+
+            return Content(json, "application/json");
         }
+
 
         // GET: Comments/Create
         public IActionResult Create()
@@ -54,22 +103,26 @@ namespace WebAssignment3.Controllers
         }
 
         // POST: Comments/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,ProductId,UserId,Rating,Image,Text")] Comment comment)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(comment);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                // Return JSON response with success status, message, and the created comment object
+                return Json(new { success = true, message = "Comment created successfully", comment });
             }
+
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Id", comment.ProductId);
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", comment.UserId);
-            return View(comment);
+
+            // If ModelState is not valid, return JSON with error message
+            return Json(new { success = false, message = "Failed to create comment", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
         }
+
+
 
         // GET: Comments/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -89,12 +142,11 @@ namespace WebAssignment3.Controllers
             return View(comment);
         }
 
-        // POST: Comments/Edit/5
+        // PUT: Comments/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ProductId,UserId,Rating,Image,Text")] Comment comment)
+        [HttpPut]
+        public async Task<IActionResult> Update(int id, [Bind("Id,ProductId,UserId,Rating,Image,Text")] Comment comment)
         {
             if (id != comment.Id)
             {
@@ -107,6 +159,9 @@ namespace WebAssignment3.Controllers
                 {
                     _context.Update(comment);
                     await _context.SaveChangesAsync();
+
+                    // Return JSON response with success status, message, and the updated comment object
+                    return Json(new { success = true, message = "Comment updated successfully", comment });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -119,12 +174,13 @@ namespace WebAssignment3.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Id", comment.ProductId);
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", comment.UserId);
             return View(comment);
         }
+
+
 
         // GET: Comments/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -146,20 +202,23 @@ namespace WebAssignment3.Controllers
             return View(comment);
         }
 
-        // POST: Comments/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        // DELETE: Comments/Delete/5
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
         {
             var comment = await _context.Comments.FindAsync(id);
-            if (comment != null)
+            if (comment == null)
             {
-                _context.Comments.Remove(comment);
+                return NotFound();
             }
 
+            _context.Comments.Remove(comment);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            // Return JSON response with success status and message
+            return Json(new { success = true, message = "Comment deleted successfully" });
         }
+
 
         private bool CommentExists(int id)
         {

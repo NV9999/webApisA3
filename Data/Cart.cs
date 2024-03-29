@@ -15,7 +15,7 @@ public partial class Cart
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    public virtual Product ProductIdsNavigation { get; set; } = null!;
+    public virtual Product? Product { get; set; }
 
     public virtual User? User { get; set; }
 }

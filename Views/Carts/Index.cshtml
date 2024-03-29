@@ -16,10 +16,10 @@
                 @Html.DisplayNameFor(model => model.Quantities)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ProductIdsNavigation)
+                Product Id
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.User)
+                User Id
             </th>
             <th></th>
         </tr>
@@ -31,7 +31,7 @@
                 @Html.DisplayFor(modelItem => item.Quantities)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ProductIdsNavigation.Id)
+                @Html.DisplayFor(modelItem => item.ProductIds)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.User.Id)

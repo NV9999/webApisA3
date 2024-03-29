@@ -49,20 +49,31 @@ namespace WebAssignment3.Controllers
         }
 
         // POST: Products/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Description,Image,Pricing,ShippingCost")] Product product)
+        public async Task<IActionResult> Create([FromBody] Product product)
         {
-            if (ModelState.IsValid)
+            if (product == null)
             {
-                _context.Add(product);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return BadRequest("Product object is null");
             }
-            return View(product);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                _context.Products.Add(product);
+                await _context.SaveChangesAsync();
+                return Ok(new { success = true, message = "Product created successfully", product });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
 
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -133,24 +144,59 @@ namespace WebAssignment3.Controllers
             return View(product);
         }
 
-        // POST: Products/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        // DELETE: Products/Delete/5
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
         {
             var product = await _context.Products.FindAsync(id);
-            if (product != null)
+            if (product == null)
             {
-                _context.Products.Remove(product);
+                return NotFound();
             }
 
+            _context.Products.Remove(product);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return Ok(new { message = "Product deleted successfully." });
         }
+
 
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.Id == id);
         }
+
+        // PUT: Products/Edit/5
+        [HttpPut]
+        public async Task<IActionResult> Updateuser(int id, [Bind("Id,Description,Image,Pricing,ShippingCost")] Product product)
+        {
+            if (id != product.Id)
+            {
+                return BadRequest("Product ID does not match.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(product);
+                    await _context.SaveChangesAsync();
+                    return Json(product);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ProductExists(product.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+            return BadRequest(ModelState);
+        }
+
     }
 }

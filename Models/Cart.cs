@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using WebAssignment3.Data;
 
 namespace WebAssignment3.Models
 {
@@ -8,9 +9,10 @@ namespace WebAssignment3.Models
 
         [ForeignKey("Products")]
         public int ProductIds { get; set; }
-        public string Quantities { get; set; }
+        public int Quantities { get; set; }
 
         [ForeignKey("Users")]
         public int UserId { get; set; }
+
     }
 }
