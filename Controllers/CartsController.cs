@@ -51,7 +51,7 @@ namespace WebAssignment3.Controllers
         }
 
         // GET: Carts/Details/5
-        [HttpGet("getCartById/{id}")]
+        [HttpGet]
         public async Task<ActionResult> Details(int id)
         {
             try

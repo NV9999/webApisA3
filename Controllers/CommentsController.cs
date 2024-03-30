@@ -52,46 +52,35 @@ namespace WebAssignment3.Controllers
 
 
         // GET: Comments/Details/5
-        public async Task<IActionResult> Details(int? id)
+        [HttpGet]
+        public async Task<ActionResult> Details(int id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
+                var comment = await _context.Comments
+                   // .Include(c => c.Product)
+                   // .Include(c => c.User)
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
+                if (comment == null)
+                {
+                    return NotFound(new { success = false, message = "Comment not found" });
+                }
+
+                var options = new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                };
+
+                var json = JsonConvert.SerializeObject(new { success = true, message = "Comment retrieved successfully", data = comment }, options);
+                return new OkObjectResult(json);
             }
-
-            var comment = await _context.Comments
-                .Include(c => c.Product)
-                .Include(c => c.User)
-               // .FirstOrDefaultAsync(m => m.Id == id);
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (comment == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                return StatusCode(500, new { success = false, message = $"Failed to retrieve comment: {ex.Message}" });
             }
-
-            // Create a custom anonymous object with required properties
-            var result = new
-            {
-                Id = comment.Id,
-                ProductId = comment.ProductId,
-                UserId = comment.UserId,
-                Rating = comment.Rating,
-                Image = comment.Image,
-                Text = comment.Text
-            };
-
-            // Serialize comment directly without the need for an array wrapper
-            var json = System.Text.Json.JsonSerializer.Serialize(result, new System.Text.Json.JsonSerializerOptions
-            {
-                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
-                IgnoreNullValues = true,
-                WriteIndented = true,
-                MaxDepth = 64 // Adjust the depth as needed
-            });
-
-            return Content(json, "application/json");
         }
+
 
 
         // GET: Comments/Create

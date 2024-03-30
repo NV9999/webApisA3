@@ -26,6 +26,7 @@ namespace WebAssignment3.Controllers
         }
 
         // GET: Products/Details/5
+        [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

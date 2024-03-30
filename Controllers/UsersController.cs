@@ -25,6 +25,7 @@ namespace WebAssignment3.Controllers
             return Json(users);
         }
 
+        /*
         // GET: Users/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -41,6 +42,22 @@ namespace WebAssignment3.Controllers
 
             return Json(user);
         }
+        */
+
+        // GET: api/Users/5
+        [HttpGet]
+        public async Task<ActionResult<User>> Details(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new { User = user, View = "Users/Details" });
+        }
+
 
         // GET: Users/Create
         public IActionResult Create()

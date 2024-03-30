@@ -48,13 +48,13 @@ namespace WebAssignment3.Controllers
         }
 
         // GET: Orders/Details/5
-        [HttpGet("getOrderById/{id}")]
+        [HttpGet]
         public async Task<ActionResult> Details(int id)
         {
             try
             {
                 var order = await _context.Orders
-                    .Include(o => o.Cart)
+                  //  .Include(o => o.Cart)
                     .FirstOrDefaultAsync(m => m.Id == id);
 
                 if (order == null)
@@ -75,6 +75,7 @@ namespace WebAssignment3.Controllers
                 return StatusCode(500, new { success = false, message = $"Failed to retrieve order: {ex.Message}" });
             }
         }
+
 
         // GET: Orders/Create
         public IActionResult Create()
