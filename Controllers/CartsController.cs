@@ -56,14 +56,20 @@ namespace WebAssignment3.Controllers
         {
             try
             {
-                var cart = await _context.Carts
-                    .Include(o => o.Product)
-                    .Include(o => o.User)
-                    .FirstOrDefaultAsync(m => m.Id == id);
+                var cart = await _context.Carts.FindAsync(id);
+                if (!CartExists(cart.Id))
+                {
+                    return NotFound();
+                }
 
                 if (cart == null)
                 {
                     return NotFound(new { success = false, message = "Cart not found" });
+                }
+                else
+                {
+                     _context.Carts.Include(o => o.Product)
+                    .Include(o => o.User);
                 }
 
                 var options = new JsonSerializerSettings
@@ -115,9 +121,9 @@ namespace WebAssignment3.Controllers
                  return Json(new { success = false, message = $"Failed to create cart: {errorMessage}" });
              }
          }*/
-
+        //POST: CARTS/CREATE
         [HttpPost]
-        public async Task<IActionResult> PostCart([FromBody] Cart cart)
+        public async Task<IActionResult> Create([FromBody] Cart cart)
         {
             try
             {
@@ -219,7 +225,34 @@ namespace WebAssignment3.Controllers
             return View(cart);
         }*/
 
-        // DELETE: Cart/Delete/5
+
+
+        /*
+           // DELETE: Cart/Delete/5
+           [HttpDelete]
+           public async Task<IActionResult> Delete(int id)
+           {
+               try
+               {
+                   var cart = await _context.Carts.FindAsync(id);
+                   if (cart == null)
+                   {
+                       return NotFound(new { success = false, message = "Cart not found" });
+                   }
+
+                   _context.Carts.Remove(cart);
+                   await _context.SaveChangesAsync();
+
+                   return Json(new { success = true, message = "Cart deleted successfully" });
+               }
+               catch (Exception ex)
+               {
+                   return StatusCode(500, new { success = false, message = $"Failed to delete cart: {ex.Message}" });
+               }
+           }
+        */
+
+        // DELETE: Carts/Delete/5
         [HttpDelete]
         public async Task<IActionResult> Delete(int id)
         {
@@ -229,6 +262,13 @@ namespace WebAssignment3.Controllers
                 if (cart == null)
                 {
                     return NotFound(new { success = false, message = "Cart not found" });
+                }
+
+                // Check if the cart has associated orders
+                var orders = await _context.Orders.Where(o => o.CartId == id).ToListAsync();
+                if (orders.Any())
+                {
+                    return BadRequest(new { success = false, message = "Cannot delete cart with associated orders" });
                 }
 
                 _context.Carts.Remove(cart);

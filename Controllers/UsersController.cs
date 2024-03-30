@@ -93,37 +93,37 @@ namespace WebAssignment3.Controllers
         // POST: Users/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Email,Password,Username,PurchaseHistory,ShippingAddress")] User user)
-        {
-            if (id != user.Id)
-            {
-                return NotFound();
-            }
+      //  [HttpPost]
+       // [ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(int id, [Bind("Id,Email,Password,Username,PurchaseHistory,ShippingAddress")] User user)
+        //{
+          //  if (id != user.Id)
+           // {
+            //    return NotFound();
+            //}
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(user);
-        }
+          //  if (ModelState.IsValid)
+          //  {
+           //     try
+            //    {
+             //       _context.Update(user);
+              //      await _context.SaveChangesAsync();
+            //    }
+          //      catch (DbUpdateConcurrencyException)
+          //      {
+           //         if (!UserExists(user.Id))
+            //        {
+             //           return NotFound();
+              //      }
+            //        else
+          //          {
+          //              throw;
+          //          }
+          //      }
+        //        return RedirectToAction(nameof(Index));
+        //    }
+       //     return View(user);
+     //   }
 
         // GET: Users/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -143,15 +143,30 @@ namespace WebAssignment3.Controllers
             return View(user);
         }
 
-        //POST: Users/Delete/5
+        /*  //DELETE: Users/Delete/5
+          [HttpDelete]
+          public async Task<IActionResult> Delete(int Id)
+          {
+              var user = await _context.Users.FindAsync(Id);
+              if (user == null)
+              {
+                  return NotFound();
+              }
 
+              _context.Users.Remove(user);
+              await _context.SaveChangesAsync();
+
+              return Ok(new { message = "User deleted successfully." });
+          }*/
+
+        // DELETE: Users/Delete/5
         [HttpDelete]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int Id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(Id);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new { message = "User not found." });
             }
 
             _context.Users.Remove(user);
@@ -160,6 +175,10 @@ namespace WebAssignment3.Controllers
             return Ok(new { message = "User deleted successfully." });
         }
 
+
+
+
+
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.Id == id);
@@ -167,34 +186,36 @@ namespace WebAssignment3.Controllers
 
         // PUT: Users/Edit/5
         [HttpPut]
-        public async Task<IActionResult> Updateuser(int id, [Bind("Id,Email,Password,Username,PurchaseHistory,ShippingAddress,Carts,Comments")] User user)
+        public async Task<IActionResult> Edit(int Id, [FromBody] User user)
         {
-            if (id != user.Id)
+            if (Id != user.Id)
             {
                 return BadRequest("User ID does not match.");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UserExists(user.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return Json(user);
+                return BadRequest(ModelState);
             }
-            return BadRequest(ModelState);
+
+            try
+            {
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(user.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return Json(user);
         }
+
     }
 }

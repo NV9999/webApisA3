@@ -27,8 +27,8 @@ namespace WebAssignment3.Controllers
             try
             {
                 var comment = await _context.Comments
-                    .Include(o => o.Product)
-                    .Include(o => o.User)
+                    //.Include(o => o.Product)
+                   // .Include(o => o.User)
                     .ToListAsync();
 
                 if (comment == null || comment.Count == 0)
@@ -104,7 +104,8 @@ namespace WebAssignment3.Controllers
 
         // POST: Comments/Create
         [HttpPost]
-        public async Task<IActionResult> Create([Bind("Id,ProductId,UserId,Rating,Image,Text")] Comment comment)
+             public async Task<IActionResult> Create([FromBody] Comment comment)
+
         {
             if (ModelState.IsValid)
             {

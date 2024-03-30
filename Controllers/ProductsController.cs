@@ -91,6 +91,7 @@ namespace WebAssignment3.Controllers
             return View(product);
         }
 
+        /*
         // POST: Products/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -125,6 +126,7 @@ namespace WebAssignment3.Controllers
             }
             return View(product);
         }
+        */
 
         // GET: Products/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -166,37 +168,73 @@ namespace WebAssignment3.Controllers
             return _context.Products.Any(e => e.Id == id);
         }
 
+        /*
+         // PUT: Products/Edit/5
+         [HttpPut]
+         public async Task<IActionResult> Update(int Id, [Bind("Id,Description,Image,Pricing,ShippingCost")] Product product)
+         {
+             if (Id != product.Id)
+             {
+                 return BadRequest("Product ID does not match.");
+             }
+
+             if (ModelState.IsValid)
+             {
+                 try
+                 {
+                     _context.Update(product);
+                     await _context.SaveChangesAsync();
+                     return Json(product);
+                 }
+                 catch (DbUpdateConcurrencyException)
+                 {
+                     if (!ProductExists(product.Id))
+                     {
+                         return NotFound();
+                     }
+                     else
+                     {
+                         throw;
+                     }
+                 }
+             }
+             return BadRequest(ModelState);
+         }
+        */
+
         // PUT: Products/Edit/5
         [HttpPut]
-        public async Task<IActionResult> Updateuser(int id, [Bind("Id,Description,Image,Pricing,ShippingCost")] Product product)
+        public async Task<IActionResult> Update(int id, [FromBody] Product product)
         {
             if (id != product.Id)
             {
                 return BadRequest("Product ID does not match.");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                _context.Update(product);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProductExists(product.Id))
                 {
-                    _context.Update(product);
-                    await _context.SaveChangesAsync();
-                    return Json(product);
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
+                else
                 {
-                    if (!ProductExists(product.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
             }
-            return BadRequest(ModelState);
+            return Json(product);
         }
+
 
     }
 }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using WebAssignment3.Data;
 
 namespace WebAssignment3.Controllers
@@ -21,27 +22,58 @@ namespace WebAssignment3.Controllers
         // GET: Orders
         public async Task<IActionResult> Index()
         {
-            var webAssignment3Context = _context.Orders.Include(o => o.Cart);
-            return View(await webAssignment3Context.ToListAsync());
+            try
+            {
+                var orders = await _context.Orders
+                  //  .Include(o => o.Cart)
+                    .ToListAsync();
+
+                if (orders == null || orders.Count == 0)
+                {
+                    return NotFound(new { success = false, message = "No orders found" });
+                }
+
+                var options = new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                };
+
+                var json = JsonConvert.SerializeObject(new { success = true, data = orders }, options);
+                return new OkObjectResult(json);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Failed to retrieve orders: {ex.Message}" });
+            }
         }
 
         // GET: Orders/Details/5
-        public async Task<IActionResult> Details(int? id)
+        [HttpGet("getOrderById/{id}")]
+        public async Task<ActionResult> Details(int id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                var order = await _context.Orders
+                    .Include(o => o.Cart)
+                    .FirstOrDefaultAsync(m => m.Id == id);
 
-            var order = await _context.Orders
-                .Include(o => o.Cart)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (order == null)
+                if (order == null)
+                {
+                    return NotFound(new { success = false, message = "Order not found" });
+                }
+
+                var options = new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                };
+
+                var json = JsonConvert.SerializeObject(new { success = true, message = "Order retrieved successfully", data = order }, options);
+                return new OkObjectResult(json);
+            }
+            catch (Exception ex)
             {
-                return NotFound();
+                return StatusCode(500, new { success = false, message = $"Failed to retrieve order: {ex.Message}" });
             }
-
-            return View(order);
         }
 
         // GET: Orders/Create
@@ -51,8 +83,10 @@ namespace WebAssignment3.Controllers
             return View();
         }
 
+
         // POST: Orders/Create
         [HttpPost]
+            
         public async Task<IActionResult> Create([FromBody] Order order)
         {
             if (order == null)
@@ -71,11 +105,40 @@ namespace WebAssignment3.Controllers
                 await _context.SaveChangesAsync();
                 return Ok(new { success = true, message = "Order created successfully", order });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                // Include inner exception message if available
+                string errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                return StatusCode(500, new { success = false, message = $"Failed to create order: {errorMessage}" });
             }
         }
+
+        /* public async Task<IActionResult> Create([FromBody] Order order)
+         {
+             if (order == null)
+             {
+                 return BadRequest("Order object is null");
+             }
+
+             if (!ModelState.IsValid)
+             {
+                 return BadRequest(ModelState);
+             }
+
+             try
+             {
+                 _context.Orders.Add(order);
+                 await _context.SaveChangesAsync();
+                 return Ok(new { success = true, message = "Order created successfully", order });
+             }
+             catch (DbUpdateException ex)
+             {
+                 // Include inner exception message if available
+                 string errorMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                 return StatusCode(500, new { success = false, message = $"Failed to create order: {errorMessage}" });
+             }
+         }*/
+
 
 
         // GET: Orders/Edit/5
@@ -95,41 +158,43 @@ namespace WebAssignment3.Controllers
             return View(order);
         }
 
-        // POST: Orders/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,CartId,OrderDate,Total")] Order order)
+        // PUT: Orders/Update/5
+        [HttpPut]
+        public async Task<IActionResult> Edit(int id, [FromBody] Order order)
         {
             if (id != order.Id)
             {
-                return NotFound();
+                return BadRequest("Invalid order ID");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(order);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!OrderExists(order.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return BadRequest(ModelState);
             }
-            ViewData["CartId"] = new SelectList(_context.Carts, "Id", "Id", order.CartId);
-            return View(order);
+
+            try
+            {
+                _context.Update(order);
+                await _context.SaveChangesAsync();
+                return Ok(new { success = true, message = "Order updated successfully", order });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OrderExists(order.Id))
+                {
+                    return NotFound(new { success = false, message = "Order not found" });
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Failed to update order: {ex.Message}" });
+            }
         }
+
 
         // GET: Orders/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -151,19 +216,28 @@ namespace WebAssignment3.Controllers
         }
 
         // POST: Orders/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
-            if (order != null)
+            try
             {
-                _context.Orders.Remove(order);
-            }
+                var order = await _context.Orders.FindAsync(id);
+                if (order == null)
+                {
+                    return NotFound(new { success = false, message = "Order not found" });
+                }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+                _context.Orders.Remove(order);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Order deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Failed to delete order: {ex.Message}" });
+            }
         }
+
 
         private bool OrderExists(int id)
         {

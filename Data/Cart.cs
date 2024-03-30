@@ -9,7 +9,7 @@ public partial class Cart
 
     public int ProductIds { get; set; }
 
-    public string? Quantities { get; set; }
+    public string Quantities { get; set; }
 
     public int? UserId { get; set; }
 
